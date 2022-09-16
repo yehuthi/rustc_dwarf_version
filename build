@@ -1,0 +1,22 @@
+#!/bin/bash
+
+rm -f ./out
+
+function report() {
+	./out
+	RE=$(readelf --debug-dump=info ./out)
+	if [[ -z $RE ]]; then
+		echo "no debug info"
+	else
+		grep -A 2 'Compilation Unit @' <<< $RE | grep Version > /dev/tty
+		if command -v coz &> /dev/null
+		then
+			coz run --- ./out
+		fi
+	fi
+}
+
+rustc main.rs -o ./out -g                       \
+    -Cllvm-args="--dwarf-version=3"             \
+    -Clink-arg=-gdwarf-3                        \
+    && report
